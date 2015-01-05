@@ -16,7 +16,7 @@
 	<!-- 缓存管理器 -->
 	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager" p:cache-manager-ref="ehcache" />
 	
-	<!-- 缓存工厂 -->
+	<!-- 缓存管理器工厂 -->
 	<bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean" p:config-location="ehcache.xml"/>
 	
 	<!-- generic cache manager -->
@@ -28,4 +28,17 @@
 		    </set>
 	    </property>
 	</bean> -->
+	
+	<!-- 基于AOP的方法缓存 -->
+	<!-- <cache:advice id="cacheAdvice" cache-manager="cacheManager">
+		<cache:caching cache="books">
+			<cache:cacheable method="find*"/>
+			<cache:cache-evict method="save*,update*,delete*", all-entries="true"></cache:cache-evict>
+		</cache:caching>
+	</cache:advice> -->
+	
+	<!-- 应用基于AOP的缓存方案 -->
+	<!-- <aop:config>
+		<aop:advisor advice-ref="cacheAdvice" pointcut="execution(* org.xiaojs.service.*.*(..))"/>
+	</aop:config> -->
 </beans>
