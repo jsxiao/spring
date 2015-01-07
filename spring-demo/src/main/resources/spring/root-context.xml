@@ -84,13 +84,12 @@
 	<context:component-scan base-package="org.xiaojs.*" />
 	
 	<!-- 自定义DAO -->
-	<!-- 
-	<bean class="com.aggrepoint.dao.HibernateDaoScannerConfigurer"
+	<bean class="org.xiaojs.dao.HibernateDaoScannerConfig"
 		p:basePackage="org.xiaojs.dao">
-		<property name="functions">
+		<!-- <property name="functions">
 			<list>
 				<bean class="com.mmec.plugin.DataScopeFunc" />
 			</list>
-		</property>
-	</bean> -->
+		</property> -->
+	</bean>
 </beans>

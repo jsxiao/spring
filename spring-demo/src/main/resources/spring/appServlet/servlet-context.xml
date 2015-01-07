@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+					http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd 
+					http://www.springframework.org/schema/beans 
+					http://www.springframework.org/schema/beans/spring-beans.xsd 
+					http://www.springframework.org/schema/context 
+					http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 文件上传 -->
+	<beans:bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+		p:defaultEncoding="utf-8" p:maxUploadSize="4194304" p:resolveLazily="true"/>
+		
+
+	<!-- 启用SpringMVC注解支持 -->
+	<mvc:annotation-driven />
+	<!-- <mvc:annotation-driven conversion-service="conversionService">
+		<mvc:argument-resolvers>
+			<beans:bean
+				class="com.aggrepoint.winlet.spring.WinletHandlerMethodArgumentResolver" />
+		</mvc:argument-resolvers>
+	</mvc:annotation-driven> -->
+	
+	<!-- <beans:bean id="conversionService"
+		class="org.springframework.context.support.ConversionServiceFactoryBean">
+		<beans:property name="converters">
+			<beans:list>
+				<beans:bean class="com.mmec.plugin.StringToDateConverter" />
+			</beans:list>
+		</beans:property>
+	</beans:bean> -->
+	
+	<beans:bean id="systemPlaceholderConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+		
+	<!-- velocity模版引擎 -->
+	<!-- ><beans:bean id="velocityEngine"
+		class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
+		<beans:property name="resourceLoaderPath" value="classpath:velocityTemplate" />
+	</beans:bean> -->
+	
+	<!-- 处理静态资源 -->
+	<resources mapping="/resources/**" location="/resources/" />
+
+	<!-- 视图解析器 -->
+	<beans:bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<beans:property name="mediaTypes">
+			<beans:map>
+				<beans:entry key="html" value="text/html" />
+				<beans:entry key="json" value="application/json" />
+			</beans:map>
+		</beans:property>
+		
+		<beans:property name="viewResolvers">
+			<beans:list>
+				<beans:bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="10"/>
+				<beans:bean id="jspResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:order="20" p:viewNames="/WEB-INF/*.jsp" />					
+				<beans:bean id="jspxResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:order="30" p:prefix="/WEB-INF/views/" p:suffix=".jspx" />
+			</beans:list>
+		</beans:property>
+		
+		<beans:property name="defaultViews">
+			<beans:list>
+				<beans:bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>
+			</beans:list>
+		</beans:property>
+	</beans:bean>
+	
+	
+	<!-- 组建扫描 -->
+	<context:component-scan base-package="org.xiaojs.web.controller" />
+
+	<!-- <beans:bean id="requestLogger" class="com.mmec.plugin.MmecRequestLogger" />
+	<beans:bean id="accessRuleEngine" class="com.mmec.plugin.MmecAccessRuleEngine" />
+	<beans:bean id="codeMapProvider" class="com.mmec.plugin.CacheCodeMapProvider"
+		p:package="com.mmec.domain" />
+	<beans:bean id="userEngine" class="com.mmec.plugin.ExternalUserEngine" /> -->
+
+	<!-- 当抛出异常时转向指定的地址 -->
+	<beans:bean id="exceptionResolver"
+		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<beans:property name="exceptionMappings">
+			<beans:props>
+				<!-- <beans:bean class="com.aggrepoint.winlet.spring.ExceptionMapping"
+					p:exception="com.aggrepoint.winlet.NotAuthorizedException" p:rule="true"
+					p:view="redirect:/mmecf/site/login" />
+				<beans:bean class="com.aggrepoint.winlet.spring.ExceptionMapping"
+					p:exception="org.springframework.web.multipart.MaxUploadSizeExceededException"
+					p:view="maxUploadSizeExceptionView" /> -->			
+			</beans:props>
+		</beans:property>
+	</beans:bean>
+</beans:beans>

@@ -1,12 +1,13 @@
-package org.xiaojs.spring.demo;
+package org.xiaojs.dao;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -17,22 +18,22 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
 
-public class HibernateDaoScanner extends ClassPathBeanDefinitionScanner{
+public class HibernateDaoScanner extends ClassPathBeanDefinitionScanner {
 
 	public HibernateDaoScanner(BeanDefinitionRegistry registry,
-			ResourceLoader resourceLoader, BeanNameGenerator nameGenerator) {
+			ResourceLoader resourceLoader, BeanNameGenerator beanNameGenerator) {
 		super(registry, false);
-		
+
 		setResourceLoader(resourceLoader);
-		setBeanNameGenerator(nameGenerator);
-		
+		setBeanNameGenerator(beanNameGenerator);
+
 		addIncludeFilter(new AssignableTypeFilter(HibernateDao.class) {
 			@Override
 			protected boolean matchClassName(String className) {
 				return false;
 			}
 		});
-		
+
 		// exclude package-info.java
 		addExcludeFilter(new TypeFilter() {
 			public boolean match(MetadataReader metadataReader,
@@ -44,32 +45,68 @@ public class HibernateDaoScanner extends ClassPathBeanDefinitionScanner{
 			}
 		});
 	}
-	
+
+	/**
+	 * Calls the parent search that will search and register all the candidates.
+	 * Then the registered objects are post processed to set them as
+	 * MapperFactoryBeans
+	 */
 	@Override
-	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
-		// TODO Auto-generated method stub
+	public Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
-		
-		if(beanDefinitions.isEmpty()){
+
+		if (beanDefinitions.isEmpty()) {
 			logger.warn("No HibernateDao was found in '"
 					+ Arrays.toString(basePackages)
 					+ "' package. Please check your configuration.");
-		}else{
-			for(BeanDefinitionHolder holder : beanDefinitions){
-				GenericBeanDefinition definition = (GenericBeanDefinition) holder.getBeanDefinition();
+		} else {
+			for (BeanDefinitionHolder holder : beanDefinitions) {
 				
+				GenericBeanDefinition definition = (GenericBeanDefinition) holder
+						.getBeanDefinition();
+
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating HibernateDaoFactoryBean with name '"
 							+ holder.getBeanName() + "' and '"
 							+ definition.getBeanClassName() + "' daoInterface");
 				}
+
+				// the mapper interface is the original class of the bean
+				// but, the actual class of the bean is HibernateDaoFactoryBean
 				
 				definition.getPropertyValues().add("daoInterface", definition.getBeanClassName());
 				definition.setBeanClass(HibernateDaoFactoryBean.class);
 				definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
 			}
 		}
-		
+
 		return beanDefinitions;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected boolean isCandidateComponent(
+			AnnotatedBeanDefinition beanDefinition) {
+		return (beanDefinition.getMetadata().isInterface() && beanDefinition
+				.getMetadata().isIndependent());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected boolean checkCandidate(String beanName,
+			BeanDefinition beanDefinition) throws IllegalStateException {
+		if (super.checkCandidate(beanName, beanDefinition)) {
+			return true;
+		} else {
+			logger.warn("Skipping HibernateDaoFactoryBean with name '"
+					+ beanName + "' and '" + beanDefinition.getBeanClassName()
+					+ "' daoInterface"
+					+ ". Bean already defined with the same name!");
+			return false;
+		}
 	}
 }
